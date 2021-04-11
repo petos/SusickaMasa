@@ -173,6 +173,7 @@ void initPortuVahy(int ID, int pSCK, int pDT, long offset, long scale, int locat
     masoStruct[ID].vaha.begin(pDT, pSCK);
     masoStruct[ID].vaha.set_scale(offset);
     masoStruct[ID].vaha.tare();
+    masoStruct[ID].vaha.power_down();
 }
 
 
@@ -197,7 +198,9 @@ int nactiTlacitka() {
 long spusteniMereni( int ID ){
     long w1 = 0;
     // read until stable
+    masoStruct[ID].vaha.power_up();
     w1 = masoStruct[ID].vaha.get_units(10);
+    masoStruct[ID].vaha.power_down();
     Serial.println("Vaha: " + String(w1));
     return w1;
 }
