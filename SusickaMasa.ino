@@ -141,7 +141,7 @@ void setup()
 
 
 void loop() {   
-    decideScreen(nactiTlacitka());
+    decideMenuScreen(nactiTlacitka());
     updateVahy();
     drawScreen();
 }
@@ -217,9 +217,19 @@ void noveMaso ( int ID,  int weight ) {
     }
 };
 
+void updateVahy() {
+    for ( int i = 0; i < VAHYCELKEM; i++) {
+        if ( masoStruct[i].enable == true ){
+            masoStruct[i].weight = spusteniMereni(i);
+            masoStruct[i].curPerc = masoStruct[i].weight*100/masoStruct[i].startWeight;
+            Serial.println("Vaha: " + String(masoStruct[i].weight));
+        }
+    }
+}
+
 void calibrate(int ID){
     masoStruct[ID].vaha.set_scale();
-    masoStruct[ID].vaha.tare();
+    //masoStruct[ID].vaha.tare();
 
     long b = masoStruct[ID].vaha.read_average();
     Serial.println("Read average: "+ String(b));
@@ -278,117 +288,35 @@ void preCalibrateRun() {
     }
 }
 
-String mainMenu[4] = {
-"Kalibrace vahy",
-"Nastavit start"
-"Nastavit cil"
-"Re-init vahy"
-};
-
-
-void decideScreen( int klavesa ) {
-    if ( klavesa == 0 ) {
-        //GoToMenu();
-    }
-    return;
-}
-
-int getFirstONScale() {
-    int i=0;
-    for (i=0; i < VAHYCELKEM; i++) {
-        if ( masoStruct[i].enable == true ) {
-            return i;
-        };
-    };
-    return -1;
-}
-
-int nextAvailONScale(int j) {
-    for ( int i=j; i < VAHYCELKEM; i++) {
-        if ( masoStruct[i].enable == true ) {
-            return j;
-        };
-    };
-    return j;
-}
-
-int prevAvailONScale(int j) {
-    for ( int i=j; i > -1; i--) {
-        if ( masoStruct[i].enable == true ) {
-            return j;
-        };
-    };
-    return j;
-}
-
-void nastavStartVahu(int zvolenaVaha) {
-    int vaha=masoStruct[zvolenaVaha].startWeight;
-    lcd.setCursor(7,1);
-    lcd.print(String(vaha));
-    int rad=10;
+void decideMenuScreen( int klavesa ) {
     
-    while ( true ) {
-        int tlacitko = nactiTlacitka();
-        
-        if ( tlacitko == 5 ) { masoStruct[zvolenaVaha].startWeight = vaha; return ; }
-        else if ( tlacitko == 6 ) { rad*=10; }
-        else if ( tlacitko == 4 ) {
-            rad/=10;
-            if ( rad < 1 ) { rad = 1; }
-        }
-        else 
-        {
-            if ( tlacitko == 8 ) {vaha += rad; }
-            if ( tlacitko == 2 ) {vaha -= rad; }
-            lcd.setCursor(7,1);
-            lcd.print(String(vaha));
-        }
-        
-        delay(500);
-    }
-    
-}
-
-void menuStartovaciVaha() {
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Kalibrace vahy");
-    int zvolenaVaha;
-    zvolenaVaha = getFirstONScale();
-    if ( zvolenaVaha == -1 ) 
-    {
-        lcd.setCursor(0,0);
-        lcd.print("Zadna pouzitelna");
-        lcd.setCursor(0,1);
-        lcd.print("vaha k nastaveni");
-        delay(2000);
+    if ( klavesa != 5  ) {
         return;
     }
-    else 
-    {
-        lcd.setCursor(0,1);
-        lcd.print("id =" + String(zvolenaVaha));
+
+    String mainMenu[4][2] = { 
+        {"Kalibrace vahy"," "},
+        {"Nastavit start"," "},
+        {"Nastavit cil"," "},
+        {"Re-init vahy"," "},
+    };
+    int choise;    
+    choise=drawMenuItems( 4, mainMenu );
+    switch (choise) {
+    case 0:
+        //kalibrace
+        break;
+    case 1:
+        //nastavit start
+        break;
+    case 2:
+        //nastavit cil
+        break;
+    case 3:
+        //reinit vahy
+        break;
     }
-    
-    while ( true ) {
-        int tlacitko=nactiTlacitka();
-        if ( tlacitko == 5 ) { 
-            nastavStartVahu(zvolenaVaha); 
-            return; 
-        }
-        if ( tlacitko == 8 ) { 
-            zvolenaVaha = nextAvailONScale(zvolenaVaha);
-            lcd.setCursor(0,1);
-            lcd.print(" id " + String(zvolenaVaha));
-        }
-        if ( tlacitko == 2 ) { 
-            zvolenaVaha = prevAvailONScale(zvolenaVaha);
-            lcd.setCursor(0,1);
-            lcd.print(" id " + String(zvolenaVaha));
-        }
-        delay(100);
-    }
-    
+    return;
 }
 
 void drawScreen() {
@@ -414,16 +342,6 @@ void drawScreen() {
     }
 }
 
-void updateVahy() {
-    for ( int i = 0; i < VAHYCELKEM; i++) {
-        if ( masoStruct[i].enable == true ){
-            masoStruct[i].weight = spusteniMereni(i);
-            masoStruct[i].curPerc = masoStruct[i].weight*100/masoStruct[i].startWeight;
-            Serial.println("Vaha: " + String(masoStruct[i].weight));
-        }
-    }
-}
-
 void createPosChars() {
     lcd.createChar(1, LB);
     lcd.createChar(2, LF);
@@ -431,7 +349,7 @@ void createPosChars() {
     lcd.createChar(4, RF);
 }
 
-void drawMenuItems( int totalItems, String menuItems[][2]  ) {
+int drawMenuItems( int totalItems, String menuItems[][2]  ) {
     bool reDraw=false;    
     int menuID=0;
 
@@ -462,8 +380,43 @@ void drawMenuItems( int totalItems, String menuItems[][2]  ) {
         reDraw=false;
         delay(100);
     }
-}
+} 
 
+int updateNumber( int znak, int radek, int startNumber, int maxNum) {
+    bool reDraw = true;
+    int value=startNumber;
+    int rad=1;
+    
+    while ( true ) {
+        int tlacitko = nactiTlacitka();
+        
+        if ( tlacitko == 5 ) { return value; }
+        else if ( tlacitko == 6 ) { rad*=10; }
+        else if ( tlacitko == 4 ) {
+            rad/=10;
+            if ( rad < 1 ) { rad = 1; }
+        }
+        else 
+        {
+            if ( tlacitko == 8 ) {
+                value += rad; 
+                if ( maxNum != 0 && maxNum < value ) { value = maxNum; }
+                reDraw = true;
+            }
+            if ( tlacitko == 2 ) {
+                value -= rad;
+                if ( value < 0 ) { value = 0 ;}
+                reDraw=true; 
+            }
+            if ( reDraw == true ) {
+                lcd.setCursor(znak,radek);
+                lcd.print(String(value));
+            }
+        }
+        
+        delay(500);
+    }
+}
 
 
 
