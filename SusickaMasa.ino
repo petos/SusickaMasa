@@ -147,6 +147,7 @@ void loop() {
   decideMenuScreen(nactiTlacitka());
   updateVahy();
   drawScreen();
+  delay(500);
 }
 
 void initVahy(int i) {
@@ -359,8 +360,8 @@ void drawScreen() {
 void createPosChars() {
   lcd.createChar(1, LB);
   lcd.createChar(2, LF);
-  lcd.createChar(3, RB);
-  lcd.createChar(4, RF);
+  lcd.createChar(4, RB);
+  lcd.createChar(3, RF);
 }
 
 int drawMenuItems( int totalItems, String menuItems[][2]  ) {
